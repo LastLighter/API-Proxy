@@ -58,7 +58,7 @@ export default function TestPage() {
       const data = await response.json();
       setStats(data);
     } catch (error) {
-      setStats({ error: 'Failed to fetch stats' });
+      setStats({ error: 'Failed to fetch stats' + error });
     }
   };
 
