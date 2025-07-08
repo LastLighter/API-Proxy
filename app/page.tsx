@@ -1,6 +1,73 @@
+'use client';
+
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 export default function Home() {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [username, setUsername] = useState('');
+  const [input, setInput] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // 检查localStorage中是否已登录
+    const stored = localStorage.getItem('felix_admin_logged_in');
+    if (stored === 'true') {
+      setLoggedIn(true);
+    }
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: input })
+      });
+      if (res.ok) {
+        setLoggedIn(true);
+        localStorage.setItem('felix_admin_logged_in', 'true');
+      } else {
+        const data = await res.json();
+        setError(data.message || '登录失败');
+      }
+    } catch (err) {
+      setError('网络错误');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!loggedIn) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <form onSubmit={handleLogin} className="bg-white rounded-lg shadow-lg p-8 w-full max-w-sm">
+          <h2 className="text-2xl font-bold mb-6 text-center">管理员登录</h2>
+          <input
+            type="text"
+            className="w-full border border-gray-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            placeholder="请输入管理员用户名"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            autoFocus
+          />
+          {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition-colors disabled:opacity-50"
+            disabled={loading || !input}
+          >
+            {loading ? '登录中...' : '登录'}
+          </button>
+        </form>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-16">
